@@ -32,13 +32,17 @@ int my;
 // left, right, bottom, top
 float lt, rt, bt, tp;
 
-//static float R = 40.0; // Radius of circle.
-//static float X = 50.0; // X-coordinate of center of circle.
-//static float Y = 50.0; // Y-coordinate of center of circle.
 const int MAX_BALLS = 5; // Render up to five balls
 Ball balls[MAX_BALLS];
 int noOfBalls = 1;
-static int numVertices = 30; // Number of vertices on circle.
+int selectedBall = 1;
+
+void createBalls() {
+    for (int i = 1; i <= MAX_BALLS; i++) {
+        balls[i] = Ball(i, 50, 50, 5, 5, 5, true);
+        balls[i].setNextCoord(100, 100);
+    }
+}
 
 void myInit(void)
 {
@@ -51,13 +55,11 @@ void myInit(void)
     bt = -10;
     tp = 100;
     
-    // Create balls
-    for (int i = 0; i < MAX_BALLS; i++) {
-        balls[i] = Ball(i, 50, 50, 20, true);
-    }
+    createBalls();
     
     gluOrtho2D(lt, rt, bt, tp);	// set the world window
 }
+
 void myMouse(int button, int state, int x, int y)
 {
     // TODO: find out why mouse click not registering...
@@ -79,27 +81,36 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
             break;
         case '1':
             std::cout << "select ball 1" << std::endl;
+            selectedBall = 1;
             break;
         case '2':
             std::cout << "select ball 2" << std::endl;
+            selectedBall = 2;
             break;
         case '3':
             std::cout << "select ball 3" << std::endl;
+            selectedBall = 3;
             break;
         case '4':
             std::cout << "select ball 4" << std::endl;
+            selectedBall = 4;
             break;
         case '5':
             std::cout << "select ball 5" << std::endl;
+            selectedBall = 5;
             break;
         case 'p':
-            std::cout << "toggle ball fill and non-filled" << std::endl;
+            // TODO: fix fill toggling
+            std::cout << selectedBall << ": toggle fill" << std::endl;
+            balls[selectedBall-1].toggleFilled();
             break;
         case 'n':
             std::cout << "reset" << std::endl;
+            createBalls();
             break;
         case 'q':
             std::cout << "quit" << std::endl;
+            exit(0);
             break;
         default:
             break;		      // do nothing
@@ -129,36 +140,48 @@ void mySpecialKeyboard(int theKey, int mouseX, int mouseY)
     glutPostRedisplay(); // implicitly call myDisplay
 }
 
+void drawCircles() {
+    for (int i = 1; i <= noOfBalls; i++) {
+        Ball ball = balls[i];
+        
+        std::cout << "BALL" << ball.getId() << " -- x:" << ball.getX() << " y:" << ball.getY() << " radius:" << ball.getRadius()
+        << " mass:" << ball.getMass() << " velocity:" << ball.getVelocity() << " fill: " << ball.isFilled() << std::endl;
+        std::cout << "BALL" << ball.getId() << " to x:" << ball.getNextX() << " y:" << ball.getNextY() << std::endl;
+        
+        if (ball.isFilled()) {
+            int triangleAmount = 20; // # of triangles used to draw circle
+            
+            glBegin(GL_TRIANGLE_FAN);
+            glVertex2f(ball.getX(), ball.getY()); // center of circle
+            for(i = 0; i <= triangleAmount;i++) {
+                glVertex2f(
+                           ball.getX() + (ball.getRadius() * cos(i * 2*PI / triangleAmount)),
+                           ball.getY() + (ball.getRadius() * sin(i * 2*PI / triangleAmount)));
+            }
+            glEnd();
+        } else {
+            int numVertices = 30; // # of vertices on circle
+            
+            glBegin(GL_LINE_LOOP);
+            float t = 0; // Angle parameter.
+            for (int i = 0; i < numVertices; i++) {
+                glVertex2f(
+                           ball.getX() + ball.getRadius() * cos(t),
+                           ball.getY() + ball.getRadius() * sin(t));
+                t += 2 * PI / numVertices;
+            }
+            glEnd();
+        }
+    }
+}
+
 // <<<<<<<<<<<<<<<<<<<<<<<< myDisplay >>>>>>>>>>>>>>>>>
 void myDisplay(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);     // clear the screen
     glColor3f(0.0, 0.0, 0.0);
     
-    for (int i = 0; i < noOfBalls; i++) {
-        Ball ball = balls[i];
-        std::cout << "BALL" << ball.getId() << "  x:" << ball.getX() << " y:" << ball.getY() << " radius:" << ball.getRadius() << std::endl;
-        
-        if (ball.isFilled()) {
-            glBegin(GL_POLYGON);
-            float t = 0; // Angle parameter.
-            for (int j = 0; j < numVertices; j++) {
-                glVertex2i(ball.getX() + ball.getRadius() * cos(t), ball.getY() + ball.getRadius() * sin(t));
-                t += 2 * PI / numVertices;
-            }
-            glEnd();
-        } else {
-            glBegin(GL_LINE_LOOP);
-            float t = 0; // Angle parameter.
-            for (int i = 0; i < numVertices; i++) {
-                //glColor3f((float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX);
-                glVertex3f(ball.getX() + ball.getRadius() * cos(t), ball.getY() + ball.getRadius() * sin(t), 0.0);
-                t += 2 * PI / numVertices;
-            }
-            glEnd();
-        }
-        
-    }
+    drawCircles();
     
     if (selected) {
         std::cout << "left mouse clicked" << std::endl;
@@ -185,7 +208,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB); // set display mode
     glutInitWindowSize(screenWidth, screenHeight); // set window size
     glutInitWindowPosition(100, 150); // set window position on screen
-    glutCreateWindow("Computer Graphics - Lab"); // open the screen window
+    glutCreateWindow("Computer Graphics - HW1"); // open the screen window
     
     glutDisplayFunc(myDisplay);     // register redraw function
     glutKeyboardFunc(myKeyboard);
