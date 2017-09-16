@@ -49,12 +49,34 @@ void Ball::setRadius(int r) {
 
 void Ball::incRadius(int x) {
     int cond = m_radius + x;
-    if (cond <= MAX_RADIUS) { m_radius += x; }
+    if (cond <= MAX_RADIUS) {
+        m_radius += x;
+        
+        // When radius increases, its mass must be increased
+        double m_massNew = m_mass + x;
+        
+        // Velocity v must be decreased using the equation: v’ = Mv/M’
+        // where v’ is the decreased v and M’ is the increased M
+        m_velocity = m_mass * m_velocity / m_massNew;
+        
+        m_mass = m_massNew;
+    }
 }
 
 void Ball::decRadius(int x) {
     int cond = m_radius - x;
-    if (cond >= MIN_RADIUS) {m_radius -= x; }
+    if (cond >= MIN_RADIUS) {
+        m_radius -= x;
+        
+        // When radius decreases, its mass must be decreased
+        double m_massNew = m_mass - x;
+        
+        // Velocity v must be increased using the equation: v’ = Mv/M’
+        // where v’ is the increased v and M’ is the decreased M
+        m_velocity = m_mass * m_velocity / m_massNew;
+        
+        m_mass = m_massNew;
+    }
 }
 
 int Ball::getRadius() {
