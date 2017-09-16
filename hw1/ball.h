@@ -21,6 +21,8 @@ public:
     double getY();
     void setRadius(int r);
     int getRadius();
+    void incRadius(int x);
+    void decRadius(int x);
     
     void setMass(double m);
     double getMass();

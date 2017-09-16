@@ -77,15 +77,11 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
     switch(theKey) {
         case 'a':
             std::cout << "add ball" << std::endl;
-            if (noOfBalls < 5) {
-                noOfBalls++;
-            }
+            if (noOfBalls < 5) { noOfBalls++; }
             break;
         case 'r':
             std::cout << "remove ball" << std::endl;
-            if (noOfBalls > 1) {
-                noOfBalls--;
-            }
+            if (noOfBalls > 1) { noOfBalls--; }
             break;
         case '1':
             std::cout << "select ball 1" << std::endl;
@@ -126,13 +122,17 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
 
 void mySpecialKeyboard(int theKey, int mouseX, int mouseY)
 {
+    int radiusIncrement = 1;
     switch(theKey) {
         case GLUT_KEY_PAGE_UP:
             std::cout << "increment radius. mass and velocity updated." << std::endl;
+            balls[selectedBall-1].incRadius(radiusIncrement);
             break;
         case GLUT_KEY_PAGE_DOWN:
             std::cout << "decrement radius. mass and velocity udpated." << std::endl;
+            balls[selectedBall-1].decRadius(radiusIncrement);
             break;
+        // TODO: velocity increment and decrement
         case GLUT_KEY_UP:
             std::cout << "increase velocity" << std::endl;
             break;

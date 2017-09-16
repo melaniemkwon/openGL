@@ -10,6 +10,9 @@
 #include <iostream>
 #include "ball.h"
 
+#define MAX_RADIUS 10
+#define MIN_RADIUS 2
+
 Ball::Ball() {}
 Ball::~Ball() {}
 
@@ -41,7 +44,17 @@ double Ball::getY() {
 }
 
 void Ball::setRadius(int r) {
-    m_radius = r;
+    if (r >= MIN_RADIUS && r <= MAX_RADIUS) { m_radius = r; }
+}
+
+void Ball::incRadius(int x) {
+    int cond = m_radius + x;
+    if (cond <= MAX_RADIUS) { m_radius += x; }
+}
+
+void Ball::decRadius(int x) {
+    int cond = m_radius - x;
+    if (cond >= MIN_RADIUS) {m_radius -= x; }
 }
 
 int Ball::getRadius() {
