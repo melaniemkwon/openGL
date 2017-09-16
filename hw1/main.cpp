@@ -42,15 +42,16 @@ void createBalls() {
     for (int i = 0; i < MAX_BALLS; i++) {
         balls[i] = Ball(ballId, 50, 50, 5, 5, 5, true);
         balls[i].setNextCoord(100, 100);
+        balls[i].setRGB((float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX);
         ballId++;
     }
 }
 
 void myInit(void)
 {
-    glClearColor(1.0,1.0,1.0,0.0);       // background color is white
-    glColor3f(0.0f, 0.0f, 0.0f);         // drawing color is black
-    glMatrixMode(GL_PROJECTION); 	   // set "camera shape"
+    glClearColor(1.0,1.0,1.0,0.0);       // background color white
+    glColor3f(0.0f, 0.0f, 0.0f);         // drawing color is initally black
+    glMatrixMode(GL_PROJECTION);         // set "camera shape"
     glLoadIdentity();
     lt = -10;
     rt = 100;
@@ -59,17 +60,16 @@ void myInit(void)
     
     createBalls();
     
-    gluOrtho2D(lt, rt, bt, tp);	// set the world window
+    gluOrtho2D(lt, rt, bt, tp);          // set the world window
 }
 
 void myMouse(int button, int state, int x, int y)
 {
-    // TODO: find out why mouse click not registering...
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         mx = x; my = y;
         selected = true;
     }
-    glutPostRedisplay(); // invoke display callback function
+    glutPostRedisplay();  // implicitly call myDisplay
     
 }
 void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
@@ -119,7 +119,7 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
             exit(0);
             break;
         default:
-            break;		      // do nothing
+            break;
     }
     glutPostRedisplay(); // implicitly call myDisplay
 }
@@ -140,17 +140,17 @@ void mySpecialKeyboard(int theKey, int mouseX, int mouseY)
             std::cout << "decrease velocity" << std::endl;
             break;
         default:
-            break;		      // do nothing
+            break;
     }
     
     glutPostRedisplay(); // implicitly call myDisplay
 }
 
 void drawCircles() {
-    std::cout << "balls[0].isFilled(): " << balls[0].isFilled() << std::endl;
     
     for (int i = 0; i < noOfBalls; i++) {
         Ball ball = balls[i];
+        glColor3f(ball.getColorRed(), ball.getColorGreen(), ball.getColorBlue());
         
         std::cout << "BALL" << ball.getId() << " -- x:" << ball.getX() << " y:" << ball.getY() << " radius:" << ball.getRadius()
         << " mass:" << ball.getMass() << " velocity:" << ball.getVelocity() << " fill: " << ball.isFilled() << std::endl;
@@ -168,7 +168,7 @@ void drawCircles() {
             }
             glEnd();
         } else {
-            int numVertices = 30; // # of vertices on circle
+            int numVertices = 30;   // # of vertices on circle
             
             glBegin(GL_LINE_LOOP);
             float t = 0; // Angle parameter.
@@ -181,6 +181,10 @@ void drawCircles() {
             glEnd();
         }
     }
+}
+
+void myIdle() {
+    std::cout << "myIdle()" << std::endl;
 }
 
 // <<<<<<<<<<<<<<<<<<<<<<<< myDisplay >>>>>>>>>>>>>>>>>
@@ -215,12 +219,14 @@ int main(int argc, char** argv)
     //glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // set display mode
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB); // set display mode
     glutInitWindowSize(screenWidth, screenHeight); // set window size
-    glutInitWindowPosition(100, 150); // set window position on screen
+    glutInitWindowPosition(screenWidth, screenHeight); // set window position on screen
     glutCreateWindow("Computer Graphics - HW1"); // open the screen window
     
     glutDisplayFunc(myDisplay);     // register redraw function
     glutKeyboardFunc(myKeyboard);
     glutSpecialFunc(mySpecialKeyboard);
+    glutMouseFunc(myMouse);
+    //glutIdleFunc(myIdle);
     
     myInit();
     

@@ -1,6 +1,6 @@
 //
 //  ball.cpp
-//  Lab2
+//  HW1
 //
 //  Created by Melanie Kwon on 9/15/17.
 //  Copyright © 2017 Melanie Kwon. All rights reserved.
@@ -87,4 +87,22 @@ double Ball::getNextX() {
 
 double Ball::getNextY() {
     return m_nexty;
+}
+
+void Ball::setRGB(float r, float g, float b) {
+    m_red = r;
+    m_green = g;
+    m_blue = b;
+}
+
+float Ball::getColorRed() {
+    return m_red;
+}
+
+float Ball::getColorGreen() {
+    return m_green;
+}
+
+float Ball::getColorBlue() {
+    return m_blue;
 }
