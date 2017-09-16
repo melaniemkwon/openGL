@@ -38,9 +38,11 @@ int noOfBalls = 1;
 int selectedBall = 1;
 
 void createBalls() {
-    for (int i = 1; i <= MAX_BALLS; i++) {
-        balls[i] = Ball(i, 50, 50, 5, 5, 5, true);
+    int ballId = 1;
+    for (int i = 0; i < MAX_BALLS; i++) {
+        balls[i] = Ball(ballId, 50, 50, 5, 5, 5, true);
         balls[i].setNextCoord(100, 100);
+        ballId++;
     }
 }
 
@@ -75,9 +77,15 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
     switch(theKey) {
         case 'a':
             std::cout << "add ball" << std::endl;
+            if (noOfBalls < 5) {
+                noOfBalls++;
+            }
             break;
         case 'r':
             std::cout << "remove ball" << std::endl;
+            if (noOfBalls > 1) {
+                noOfBalls--;
+            }
             break;
         case '1':
             std::cout << "select ball 1" << std::endl;
@@ -100,8 +108,6 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
             selectedBall = 5;
             break;
         case 'p':
-            // TODO: fix fill toggling
-            std::cout << selectedBall << ": toggle fill" << std::endl;
             balls[selectedBall-1].toggleFilled();
             break;
         case 'n':
@@ -141,22 +147,24 @@ void mySpecialKeyboard(int theKey, int mouseX, int mouseY)
 }
 
 void drawCircles() {
-    for (int i = 1; i <= noOfBalls; i++) {
+    std::cout << "balls[0].isFilled(): " << balls[0].isFilled() << std::endl;
+    
+    for (int i = 0; i < noOfBalls; i++) {
         Ball ball = balls[i];
         
         std::cout << "BALL" << ball.getId() << " -- x:" << ball.getX() << " y:" << ball.getY() << " radius:" << ball.getRadius()
         << " mass:" << ball.getMass() << " velocity:" << ball.getVelocity() << " fill: " << ball.isFilled() << std::endl;
-        std::cout << "BALL" << ball.getId() << " to x:" << ball.getNextX() << " y:" << ball.getNextY() << std::endl;
-        
+        //std::cout << "BALL" << ball.getId() << " to x:" << ball.getNextX() << " y:" << ball.getNextY() << std::endl;
+
         if (ball.isFilled()) {
             int triangleAmount = 20; // # of triangles used to draw circle
             
             glBegin(GL_TRIANGLE_FAN);
             glVertex2f(ball.getX(), ball.getY()); // center of circle
-            for(i = 0; i <= triangleAmount;i++) {
+            for(int j = 0; j <= triangleAmount; j++) {
                 glVertex2f(
-                           ball.getX() + (ball.getRadius() * cos(i * 2*PI / triangleAmount)),
-                           ball.getY() + (ball.getRadius() * sin(i * 2*PI / triangleAmount)));
+                           ball.getX() + (ball.getRadius() * cos(j * 2*PI / triangleAmount)),
+                           ball.getY() + (ball.getRadius() * sin(j * 2*PI / triangleAmount)));
             }
             glEnd();
         } else {
@@ -164,7 +172,7 @@ void drawCircles() {
             
             glBegin(GL_LINE_LOOP);
             float t = 0; // Angle parameter.
-            for (int i = 0; i < numVertices; i++) {
+            for (int j = 0; j < numVertices; j++) {
                 glVertex2f(
                            ball.getX() + ball.getRadius() * cos(t),
                            ball.getY() + ball.getRadius() * sin(t));

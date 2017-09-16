@@ -70,7 +70,6 @@ void Ball::setFilled(bool filled) {
 
 void Ball::toggleFilled() {
     m_filled = !m_filled;
-    std::cout << m_filled << " " << !m_filled << std::endl;
 }
 
 bool Ball::isFilled() {
