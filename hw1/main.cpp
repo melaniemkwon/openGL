@@ -28,6 +28,7 @@ bool selected = false;
 int mx;
 int my;
 #define PI 3.14159265358979324
+GLdouble t = 0.0; // Initial time value
 
 // left, right, bottom, top
 float lt, rt, bt, tp;
@@ -40,7 +41,9 @@ int selectedBall = 1;
 void createBalls() {
     int ballId = 1;
     for (int i = 0; i < MAX_BALLS; i++) {
-        balls[i] = Ball(ballId, 50, 50, 5, 5, 5, true);
+        balls[i] = Ball(ballId, 50, 50, 5, true);
+        balls[i].setVelocity(5, 5);
+        balls[i].setMass(5);
         balls[i].setNextCoord(100, 100);
         balls[i].setRGB((float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX);
         ballId++;
@@ -71,6 +74,11 @@ void myMouse(int button, int state, int x, int y)
     }
     glutPostRedisplay();  // implicitly call myDisplay
     
+}
+void myMotion(int x, int y) {
+    // TODO: Allow user to pick a ball to change its velocity by using mouse (left-click, drag and drop)
+    std::cout << "myMotion called" << std::endl;
+    glutPostRedisplay();
 }
 void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
 {
@@ -125,11 +133,11 @@ void mySpecialKeyboard(int theKey, int mouseX, int mouseY)
     int radiusIncrement = 1;
     switch(theKey) {
         case GLUT_KEY_PAGE_UP:
-            std::cout << "increment radius. mass and velocity updated." << std::endl;
+            std::cout << "BALL" << balls[selectedBall-1].getId() << " increment radius. mass and velocity updated." << std::endl;
             balls[selectedBall-1].incRadius(radiusIncrement);
             break;
         case GLUT_KEY_PAGE_DOWN:
-            std::cout << "decrement radius. mass and velocity udpated." << std::endl;
+            std::cout << "BALL" << balls[selectedBall-1].getId() << " decrement radius. mass and velocity updated." << std::endl;
             balls[selectedBall-1].decRadius(radiusIncrement);
             break;
         // TODO: velocity increment and decrement
@@ -153,7 +161,7 @@ void drawCircles() {
         glColor3f(ball.getColorRed(), ball.getColorGreen(), ball.getColorBlue());
         
         std::cout << "BALL" << ball.getId() << " -- x:" << ball.getX() << " y:" << ball.getY() << " radius:" << ball.getRadius()
-        << " mass:" << ball.getMass() << " velocity:" << ball.getVelocity() << " fill: " << ball.isFilled() << std::endl;
+        << " mass:" << ball.getMass() << " velocity:" << ball.getVelocityDirection() << "," << ball.getVelocityMagnitude() << " fill: " << ball.isFilled() << std::endl;
         //std::cout << "BALL" << ball.getId() << " to x:" << ball.getNextX() << " y:" << ball.getNextY() << std::endl;
 
         if (ball.isFilled()) {
@@ -185,18 +193,27 @@ void drawCircles() {
 
 void myIdle() {
     std::cout << "myIdle()" << std::endl;
+    t += 0.001;
+    if(t > 1) { t = 0; }
+    
+    // Ball animation. Update coordinates of active balls.
+    for (int i = 0; i < noOfBalls; i++) {
+        Ball ball = balls[i];
+        
+    }
+    
+    glutPostRedisplay();
 }
 
 // <<<<<<<<<<<<<<<<<<<<<<<< myDisplay >>>>>>>>>>>>>>>>>
 void myDisplay(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);     // clear the screen
-    glColor3f(0.0, 0.0, 0.0);
     
     drawCircles();
     
     if (selected) {
-        std::cout << "left mouse clicked" << std::endl;
+        //std::cout << "left mouse clicked" << std::endl;
     }
     
     glutSwapBuffers();
@@ -226,6 +243,7 @@ int main(int argc, char** argv)
     glutKeyboardFunc(myKeyboard);
     glutSpecialFunc(mySpecialKeyboard);
     glutMouseFunc(myMouse);
+    glutMotionFunc(myMotion);
     //glutIdleFunc(myIdle);
     
     myInit();

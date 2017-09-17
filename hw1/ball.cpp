@@ -16,13 +16,11 @@
 Ball::Ball() {}
 Ball::~Ball() {}
 
-Ball::Ball(int id, double x, double y, int r, double m, double v, bool f) {
+Ball::Ball(int id, double x, double y, int r, bool f) {
     m_id = id;
     m_x = x;
     m_y = y;
     m_radius = r;
-    m_mass = m;
-    m_velocity = v;
     m_filled = f;
 }
 
@@ -57,7 +55,7 @@ void Ball::incRadius(int x) {
         
         // Velocity v must be decreased using the equation: v’ = Mv/M’
         // where v’ is the decreased v and M’ is the increased M
-        m_velocity = m_mass * m_velocity / m_massNew;
+        m_velocity_magnitude = m_mass * m_velocity_magnitude / m_massNew;
         
         m_mass = m_massNew;
     }
@@ -73,7 +71,7 @@ void Ball::decRadius(int x) {
         
         // Velocity v must be increased using the equation: v’ = Mv/M’
         // where v’ is the increased v and M’ is the decreased M
-        m_velocity = m_mass * m_velocity / m_massNew;
+        m_velocity_magnitude = m_mass * m_velocity_magnitude / m_massNew;
         
         m_mass = m_massNew;
     }
@@ -91,12 +89,17 @@ double Ball::getMass() {
     return m_mass;
 }
 
-void Ball::setVelocity(double v) {
-    m_velocity = v;
+void Ball::setVelocity(double vd, double vm) {
+    m_velocity_direction = vd;
+    m_velocity_magnitude = vm;
 }
 
-double Ball::getVelocity() {
-    return m_velocity;
+double Ball::getVelocityDirection() {
+    return m_velocity_direction;
+}
+
+double Ball::getVelocityMagnitude() {
+    return m_velocity_magnitude;
 }
 
 void Ball::setFilled(bool filled) {

@@ -14,7 +14,7 @@ class Ball {
 public:
     Ball();
     ~Ball();
-    Ball(int uid, double x, double y, int r, double m, double v, bool f);
+    Ball(int uid, double x, double y, int r, bool f);
     int getId();
     void setCoord(double x, double y);
     double getX();
@@ -26,8 +26,9 @@ public:
     
     void setMass(double m);
     double getMass();
-    void setVelocity(double v);
-    double getVelocity();
+    void setVelocity(double vd, double vm);
+    double getVelocityDirection();
+    double getVelocityMagnitude();
     
     void setFilled(bool filled);
     void toggleFilled();
@@ -48,7 +49,8 @@ private:
     int m_radius;
     
     double m_mass;
-    double m_velocity;
+    double m_velocity_direction; // 0 < m_velocity_direction < 360
+    double m_velocity_magnitude;
     
     bool m_filled;
     
