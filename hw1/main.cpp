@@ -42,10 +42,9 @@ int selectedBall = 1;
 void createBalls() {
     int ballId = 1;
     for (int i = 0; i < MAX_BALLS; i++) {
-        balls[i] = Ball(ballId, 50, 50, 5, true);
-        balls[i].setVelocity(90, 3); //direction (in degrees) and magnitude
+        balls[i] = Ball(ballId, 50, 50, 3, true);
+        balls[i].setVelocity(60, 3); // direction (in degrees) and magnitude
         balls[i].setMass(5);
-        balls[i].setNextCoord(100, 100);
         balls[i].setRGB((float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX);
         ballId++;
     }
@@ -126,7 +125,7 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
         default:
             break;
     }
-    glutPostRedisplay(); // implicitly call myDisplay
+    glutPostRedisplay();
 }
 
 void mySpecialKeyboard(int theKey, int mouseX, int mouseY)
@@ -141,18 +140,19 @@ void mySpecialKeyboard(int theKey, int mouseX, int mouseY)
             std::cout << "BALL" << balls[selectedBall-1].getId() << " decrement radius. mass and velocity updated." << std::endl;
             balls[selectedBall-1].decRadius(radiusIncrement);
             break;
-        // TODO: velocity increment and decrement
         case GLUT_KEY_UP:
-            std::cout << "increase velocity" << std::endl;
+            std::cout << "increase velocity magnitude" << std::endl;
+            balls[selectedBall-1].incVelocityMagnitude(1);
             break;
         case GLUT_KEY_DOWN:
-            std::cout << "decrease velocity" << std::endl;
+            std::cout << "decrease velocity magnitude" << std::endl;
+            balls[selectedBall-1].decVelocityMagnitude(1);
             break;
         default:
             break;
     }
     
-    glutPostRedisplay(); // implicitly call myDisplay
+    glutPostRedisplay(); 
 }
 
 void drawCircles() {
@@ -162,8 +162,7 @@ void drawCircles() {
         glColor3f(ball.getColorRed(), ball.getColorGreen(), ball.getColorBlue());
         
         std::cout << "BALL" << ball.getId() << " -- x:" << ball.getX() << " y:" << ball.getY() << " radius:" << ball.getRadius()
-        << " mass:" << ball.getMass() << " velocity:" << ball.getVelocityDirection() << "," << ball.getVelocityMagnitude() << " fill: " << ball.isFilled() << std::endl;
-        //std::cout << "BALL" << ball.getId() << " to x:" << ball.getNextX() << " y:" << ball.getNextY() << std::endl;
+        << " mass:" << ball.getMass() << " velocity:" << ball.getVelocityDirection() << "," << ball.getVelocityMagnitude() << " fill:" << ball.isFilled() << std::endl;
 
         if (ball.isFilled()) {
             int triangleAmount = 20; // # of triangles used to draw circle
@@ -192,26 +191,25 @@ void drawCircles() {
     }
 }
 
-// Linear interpolation between two points.
-// Given point A and point B, return fraction T of the way between A and B
-float lerp (float a, float b, float t) {
-    return a + (b - a) * t;
-}
-
 void myIdle() {
-    std::cout << "myIdle()" << std::endl;
+
     t += 0.001;
     if(t > 1) { t = 0; }
     
     // Ball animation. Update coordinates of active balls.
     for (int i = 0; i < noOfBalls; i++) {
-        //Ball ball = balls[i];
         double directionInRadians = balls[i].getVelocityDirection() * PI / 180;
         double newX = balls[i].getX() + cos(directionInRadians) * balls[i].getVelocityMagnitude() * t;
         double newY = balls[i].getY() + sin(directionInRadians) * balls[i].getVelocityMagnitude() * t;
-        std::cout << "new Coordinates: " << newX << "," << newY << std::endl;
+        
+        // if ball's edge meets a wall boundary, use reflection to calculate new velocity direction
+        // left, right, bottom, top
+        // lt,   rt,    bt,     tp
+        if ( newX <= lt || newX >= rt || newY <= bt || newY >= tp ) {
+            std::cout << "BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
+        }
+ 
         balls[i].setCoord(newX, newY);
-        std::cout << "ball" << balls[i].getId() << ": " << balls[i].getX() << "," << balls[i].getY() << std::endl;
     }
     
     glutPostRedisplay();
@@ -220,8 +218,6 @@ void myIdle() {
 // <<<<<<<<<<<<<<<<<<<<<<<< myDisplay >>>>>>>>>>>>>>>>>
 void myDisplay(void)
 {
-    //Sleep(1); if windows
-    usleep(1);
     glClear(GL_COLOR_BUFFER_BIT);     // clear the screen
     
     drawCircles();

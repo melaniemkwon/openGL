@@ -27,16 +27,14 @@ public:
     void setMass(double m);
     double getMass();
     void setVelocity(double vd, double vm);
+    void incVelocityMagnitude(int x);
+    void decVelocityMagnitude(int x);
     double getVelocityDirection();
     double getVelocityMagnitude();
     
     void setFilled(bool filled);
     void toggleFilled();
     bool isFilled();
-    
-    void setNextCoord(double x, double y);
-    double getNextX();
-    double getNextY();
     
     void setRGB(float r, float g, float b);
     float getColorRed();
@@ -54,12 +52,9 @@ private:
     
     bool m_filled;
     
-    double m_nextx;
-    double m_nexty;
-    
     float m_red;
     float m_green;
     float m_blue;
 };
 
-#endif /* ball_h */
+#endif

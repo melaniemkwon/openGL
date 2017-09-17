@@ -11,7 +11,10 @@
 #include "ball.h"
 
 #define MAX_RADIUS 10
-#define MIN_RADIUS 2
+#define MIN_RADIUS 1
+
+#define MAX_VELOCITY 10
+#define MIN_VELOCITY 1
 
 Ball::Ball() {}
 Ball::~Ball() {}
@@ -94,6 +97,14 @@ void Ball::setVelocity(double vd, double vm) {
     m_velocity_magnitude = vm;
 }
 
+void Ball::incVelocityMagnitude(int x) {
+    if (m_velocity_magnitude + x <= MAX_VELOCITY) { m_velocity_magnitude += x; }
+}
+
+void Ball::decVelocityMagnitude(int x) {
+    if (m_velocity_magnitude - x >= MIN_VELOCITY) { m_velocity_magnitude -= x; }
+}
+
 double Ball::getVelocityDirection() {
     return m_velocity_direction;
 }
@@ -112,19 +123,6 @@ void Ball::toggleFilled() {
 
 bool Ball::isFilled() {
     return m_filled;
-}
-
-void Ball::setNextCoord(double x, double y) {
-    m_nextx = x;
-    m_nexty = y;
-}
-
-double Ball::getNextX() {
-    return m_nextx;
-}
-
-double Ball::getNextY() {
-    return m_nexty;
 }
 
 void Ball::setRGB(float r, float g, float b) {
