@@ -10,7 +10,7 @@
 #include <math.h>	// included for random number generation
 #include "ball.h"
 
-//Computer Graphics Lab : Drawing an object and changing world view
+//Computer Graphics Lab : Bouncing Balls
 #ifdef _WIN32
 #include <windows.h>
 #include <gl/Gl.h>
@@ -20,6 +20,7 @@
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/Gl.h>
 #include <GLUT/GLUT.h>
+#include <unistd.h>
 #endif
 
 const int screenWidth = 500;
@@ -42,7 +43,7 @@ void createBalls() {
     int ballId = 1;
     for (int i = 0; i < MAX_BALLS; i++) {
         balls[i] = Ball(ballId, 50, 50, 5, true);
-        balls[i].setVelocity(5, 5);
+        balls[i].setVelocity(90, 3); //direction (in degrees) and magnitude
         balls[i].setMass(5);
         balls[i].setNextCoord(100, 100);
         balls[i].setRGB((float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX);
@@ -191,6 +192,12 @@ void drawCircles() {
     }
 }
 
+// Linear interpolation between two points.
+// Given point A and point B, return fraction T of the way between A and B
+float lerp (float a, float b, float t) {
+    return a + (b - a) * t;
+}
+
 void myIdle() {
     std::cout << "myIdle()" << std::endl;
     t += 0.001;
@@ -198,8 +205,13 @@ void myIdle() {
     
     // Ball animation. Update coordinates of active balls.
     for (int i = 0; i < noOfBalls; i++) {
-        Ball ball = balls[i];
-        
+        //Ball ball = balls[i];
+        double directionInRadians = balls[i].getVelocityDirection() * PI / 180;
+        double newX = balls[i].getX() + cos(directionInRadians) * balls[i].getVelocityMagnitude() * t;
+        double newY = balls[i].getY() + sin(directionInRadians) * balls[i].getVelocityMagnitude() * t;
+        std::cout << "new Coordinates: " << newX << "," << newY << std::endl;
+        balls[i].setCoord(newX, newY);
+        std::cout << "ball" << balls[i].getId() << ": " << balls[i].getX() << "," << balls[i].getY() << std::endl;
     }
     
     glutPostRedisplay();
@@ -208,6 +220,8 @@ void myIdle() {
 // <<<<<<<<<<<<<<<<<<<<<<<< myDisplay >>>>>>>>>>>>>>>>>
 void myDisplay(void)
 {
+    //Sleep(1); if windows
+    usleep(1);
     glClear(GL_COLOR_BUFFER_BIT);     // clear the screen
     
     drawCircles();
@@ -244,7 +258,7 @@ int main(int argc, char** argv)
     glutSpecialFunc(mySpecialKeyboard);
     glutMouseFunc(myMouse);
     glutMotionFunc(myMotion);
-    //glutIdleFunc(myIdle);
+    glutIdleFunc(myIdle);
     
     myInit();
     
