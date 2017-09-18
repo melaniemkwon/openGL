@@ -36,14 +36,18 @@ float lt, rt, bt, tp;
 
 const int MAX_BALLS = 5; // Render up to five balls
 Ball balls[MAX_BALLS];
-int noOfBalls = 1;
+int noOfBalls = 2;
 int selectedBall = 1;
 
 void createBalls() {
     int ballId = 1;
+    
+    // x, y, radius, velocity direction, velocity magnitude
+    int ballInit[MAX_BALLS][5] = {{10,10,3,10,3}, {25,25,3,60,3}, {40,40,3,120,3}, {65,65,3,260,3}, {80,80,3,300,3}};
+    
     for (int i = 0; i < MAX_BALLS; i++) {
-        balls[i] = Ball(ballId, 50, 50, 9, true);
-        balls[i].setVelocity(60, 3); // direction (in degrees) and magnitude
+        balls[i] = Ball(ballId, ballInit[i][0], ballInit[i][1], ballInit[i][2], true);
+        balls[i].setVelocity(ballInit[i][3], ballInit[i][4]); // direction (in degrees) and magnitude
         balls[i].setMass(5);
         balls[i].setRGB((float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX);
         ballId++;
@@ -117,6 +121,8 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
         case 'n':
             std::cout << "reset" << std::endl;
             createBalls();
+            noOfBalls = 2;
+            // TODO: fix reset
             break;
         case 'q':
             std::cout << "quit" << std::endl;
@@ -240,8 +246,8 @@ double calcAngleReflection(double ballAngle, char wall) {
 
 void myIdle() {
 
-    t += 0.001;
-    if(t > 1) { t = 0; }
+    t = 1;
+    //if(t > 1) { t = 0; }
     
     // Ball animation. Update coordinates of active balls.
     for (int i = 0; i < noOfBalls; i++) {
