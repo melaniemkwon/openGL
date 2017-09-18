@@ -23,16 +23,18 @@
 #include <unistd.h>
 #endif
 
-const int screenWidth = 500;
-const int screenHeight = 500;
+#define SCREENSIZE 500
+const int screenWidth = SCREENSIZE;
+const int screenHeight = SCREENSIZE;
 bool selected = false;
-int mx;
-int my;
+double mx;
+double my;
 #define PI 3.14159265358979324
 GLdouble t = 0.0; // Initial time value
 
 // left, right, bottom, top
 float lt, rt, bt, tp;
+double coordRatio;
 
 const int MAX_BALLS = 5; // Render up to five balls
 Ball balls[MAX_BALLS];
@@ -42,7 +44,7 @@ int selectedBall = 1;
 void createBalls() {
     int ballId = 1;
     
-    // x, y, radius, velocity direction, velocity magnitude
+    // x, y, radius, velocity direction (in degrees), velocity magnitude
     int ballInit[MAX_BALLS][5] = {{10,10,3,10,3}, {25,25,3,60,3}, {40,40,3,120,3}, {65,65,3,260,3}, {80,80,3,300,3}};
     
     for (int i = 0; i < MAX_BALLS; i++) {
@@ -60,10 +62,12 @@ void myInit(void)
     glColor3f(0.0f, 0.0f, 0.0f);         // drawing color is initally black
     glMatrixMode(GL_PROJECTION);         // set "camera shape"
     glLoadIdentity();
-    lt = -10;
+    lt = 0;
     rt = 100;
-    bt = -10;
+    bt = 0;
     tp = 100;
+    
+    coordRatio = SCREENSIZE / 100;  //recalibrate for mouse coordinate selection
     
     createBalls();
     
@@ -79,9 +83,25 @@ void myMouse(int button, int state, int x, int y)
     glutPostRedisplay();  // implicitly call myDisplay
     
 }
+bool isBallAreaInMouseSelection(double x, double y, int r) {
+    std::cout << "isBallAreaInMouseSelection" << std::endl;
+    std::cout << "x-r = " << x-r << std::endl;
+    std::cout << "x+r = " << x+r << std::endl;
+    std::cout << "y-r = " << y-r << std::endl;
+    std::cout << "y+r = " << y+r << std::endl;
+    return (mx >= x-r && mx <= x+r && my >= y-r && my <= y+r);
+}
 void myMotion(int x, int y) {
-    // TODO: Allow user to pick a ball to change its velocity by using mouse (left-click, drag and drop)
-    std::cout << "myMotion called" << std::endl;
+    // ####### TODO: Allow user to pick a ball to change its velocity by using mouse (left-click, drag and drop)
+    mx = x/coordRatio; my = y/coordRatio;
+    std::cout << "myMotion called at " << mx << "," << my << std::endl;
+    
+    for (int i = 0; i < noOfBalls; i++) {
+        if ( isBallAreaInMouseSelection(balls[i].getX(), balls[i].getY(), balls[i].getRadius()) ) {
+            std::cout << "SELECTED BALL" << balls[i].getId() << std::endl;
+        }
+    }
+    
     glutPostRedisplay();
 }
 void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
@@ -122,7 +142,6 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
             std::cout << "reset" << std::endl;
             createBalls();
             noOfBalls = 2;
-            // TODO: fix reset
             break;
         case 'q':
             std::cout << "quit" << std::endl;
@@ -211,7 +230,6 @@ double calcVectorReflection(double ax, double ay, double nx, double ny) {
     double reflected_x = ax_norm - 2 * (ax_norm * nx_norm + ay_norm * ny_norm) * nx_norm;
     double reflected_y = ay_norm - 2 * (ax_norm * nx_norm + ay_norm * ny_norm) * ny_norm;
     
-    // calculate angle between
     // TODO: keep this function or not?
     return 0;
 }
@@ -265,25 +283,29 @@ void myIdle() {
             
             std::cout << "LEFT BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
             balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'L') );
+            newX = lt + 0.001 + ballRadius;
             
         } else if ( newX+ballRadius >= rt ) {
             
             std::cout << "RIGHT BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
             balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'R') );
+            newX = rt - 0.001 - ballRadius;
             
         } else if ( newY-ballRadius <= bt ) {
             
             std::cout << "BOTTOM BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
             balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'T') );
+            newY = bt + 0.001 + ballRadius;
             
         } else if (newY+ballRadius >= tp ) {
             
             std::cout << "TOP BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
             balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'T') );
+            newY = tp - 0.001 - ballRadius;
             
         }
         
-        // TODO: handle ball-to-ball collision
+        // ####### TODO: handle ball-to-ball collision
  
         balls[i].setCoord(newX, newY);
     }
