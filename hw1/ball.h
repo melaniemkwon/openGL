@@ -27,6 +27,7 @@ public:
     void setMass(double m);
     double getMass();
     void setVelocity(double vd, double vm);
+    void setVelocityDirection(double vd);
     void incVelocityMagnitude(int x);
     void decVelocityMagnitude(int x);
     double getVelocityDirection();

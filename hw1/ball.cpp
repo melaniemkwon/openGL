@@ -97,6 +97,10 @@ void Ball::setVelocity(double vd, double vm) {
     m_velocity_magnitude = vm;
 }
 
+void Ball::setVelocityDirection(double vd) {
+    m_velocity_direction = vd;
+}
+
 void Ball::incVelocityMagnitude(int x) {
     if (m_velocity_magnitude + x <= MAX_VELOCITY) { m_velocity_magnitude += x; }
 }

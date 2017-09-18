@@ -10,7 +10,7 @@
 #include <math.h>	// included for random number generation
 #include "ball.h"
 
-//Computer Graphics Lab : Bouncing Balls
+// OpenGL Programming : Bouncing Balls
 #ifdef _WIN32
 #include <windows.h>
 #include <gl/Gl.h>
@@ -42,7 +42,7 @@ int selectedBall = 1;
 void createBalls() {
     int ballId = 1;
     for (int i = 0; i < MAX_BALLS; i++) {
-        balls[i] = Ball(ballId, 50, 50, 3, true);
+        balls[i] = Ball(ballId, 50, 50, 9, true);
         balls[i].setVelocity(60, 3); // direction (in degrees) and magnitude
         balls[i].setMass(5);
         balls[i].setRGB((float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX);
@@ -191,6 +191,53 @@ void drawCircles() {
     }
 }
 
+double calcVectorReflection(double ax, double ay, double nx, double ny) {
+    
+    // normalize vectors a and n
+    double ax_norm = ax / (sqrt(ax*ax + ay*ay));
+    double ay_norm = ay / (sqrt(ax*ax + ay*ay));
+    double nx_norm = nx / (sqrt(nx*nx + ny*ny));
+    double ny_norm = ny / (sqrt(nx*nx + ny*ny));
+    std::cout << "Normalized vectors: " << ax_norm << "," << ay_norm << " " << nx_norm << "," << ny_norm << std::endl;
+
+    // direction of reflected array
+    // r = a-2(a·n)n
+    double reflected_x = ax_norm - 2 * (ax_norm * nx_norm + ay_norm * ny_norm) * nx_norm;
+    double reflected_y = ay_norm - 2 * (ax_norm * nx_norm + ay_norm * ny_norm) * ny_norm;
+    
+    // calculate angle between
+    // TODO: keep this function or not?
+    return 0;
+}
+
+double calcAngleReflection(double ballAngle, char wall) {
+    double angleReflection = -1;
+    
+    switch(wall) {
+        case 'L' :
+            // 0 degrees
+            angleReflection = 180 - ballAngle + 0;
+            break;
+        case 'R' :
+            // 180 degrees
+            angleReflection = 0 - ballAngle + 180;
+            break;
+        case 'B' :
+            // 90 degrees
+            angleReflection = 270 - ballAngle + 90;
+            break;
+        case 'T' :
+            // 270 degrees
+            angleReflection = 90 - ballAngle + 270;
+            break;
+        default :
+            std::cout << "No wall for angle reflection." << std::endl;
+    }
+    
+    std::cout << "angleReflection: " << angleReflection << std::endl;
+    return angleReflection;
+}
+
 void myIdle() {
 
     t += 0.001;
@@ -202,12 +249,35 @@ void myIdle() {
         double newX = balls[i].getX() + cos(directionInRadians) * balls[i].getVelocityMagnitude() * t;
         double newY = balls[i].getY() + sin(directionInRadians) * balls[i].getVelocityMagnitude() * t;
         
-        // if ball's edge meets a wall boundary, use reflection to calculate new velocity direction
+        // if ball's edge meets a wall boundary, update new velocity direction. magnitude remains the same.
         // left, right, bottom, top
         // lt,   rt,    bt,     tp
-        if ( newX <= lt || newX >= rt || newY <= bt || newY >= tp ) {
-            std::cout << "BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
+        int ballRadius = balls[i].getRadius();
+        
+        // use reflection to calculate new velocity direction
+        if ( newX-ballRadius <= lt ) {
+            
+            std::cout << "LEFT BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
+            balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'L') );
+            
+        } else if ( newX+ballRadius >= rt ) {
+            
+            std::cout << "RIGHT BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
+            balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'R') );
+            
+        } else if ( newY-ballRadius <= bt ) {
+            
+            std::cout << "BOTTOM BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
+            balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'T') );
+            
+        } else if (newY+ballRadius >= tp ) {
+            
+            std::cout << "TOP BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
+            balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'T') );
+            
         }
+        
+        // TODO: handle ball-to-ball collision
  
         balls[i].setCoord(newX, newY);
     }
@@ -243,7 +313,7 @@ void setWindow(float left, float right, float bottom, float top)
 int main(int argc, char** argv)
 {
     glutInit(&argc, argv);          // initialize the toolkit
-    //glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // set display mode
+    //glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB); // set display mode
     glutInitWindowSize(screenWidth, screenHeight); // set window size
     glutInitWindowPosition(screenWidth, screenHeight); // set window position on screen
