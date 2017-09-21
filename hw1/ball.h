@@ -27,10 +27,16 @@ public:
     void setMass(double m);
     double getMass();
     void setVelocity(double vd, double vm);
+    //void setVelocity(double vx, double vy, double vm);
     void setVelocityDirection(double vd);
+    void setVelocityVector(double x, double y);
+    void updateVelocityVector();
+    void updateVelocityDirectionFromVector();
     void incVelocityMagnitude(int x);
     void decVelocityMagnitude(int x);
     double getVelocityDirection();
+    double getVelocityVectorX();
+    double getVelocityVectorY();
     double getVelocityMagnitude();
     
     void setFilled(bool filled);
@@ -49,6 +55,8 @@ private:
     
     double m_mass;
     double m_velocity_direction; // 0 < m_velocity_direction < 360
+    double m_velocity_vectorX;
+    double m_velocity_vectorY;
     double m_velocity_magnitude;
     
     bool m_filled;

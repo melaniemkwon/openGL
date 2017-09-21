@@ -50,6 +50,7 @@ void createBalls() {
     for (int i = 0; i < MAX_BALLS; i++) {
         balls[i] = Ball(ballId, ballInit[i][0], ballInit[i][1], ballInit[i][2], true);
         balls[i].setVelocity(ballInit[i][3], ballInit[i][4]); // direction (in degrees) and magnitude
+        balls[i].updateVelocityVector(); // init velocity vector
         balls[i].setMass(5);
         balls[i].setRGB((float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX);
         ballId++;
@@ -216,7 +217,7 @@ void drawCircles() {
     }
 }
 
-double calcVectorReflection(double ax, double ay, double nx, double ny) {
+void calcVectorReflection(double &ax, double &ay, double nx, double ny) {
     
     // normalize vectors a and n
     double ax_norm = ax / (sqrt(ax*ax + ay*ay));
@@ -225,13 +226,16 @@ double calcVectorReflection(double ax, double ay, double nx, double ny) {
     double ny_norm = ny / (sqrt(nx*nx + ny*ny));
     std::cout << "Normalized vectors: " << ax_norm << "," << ay_norm << " " << nx_norm << "," << ny_norm << std::endl;
 
-    // direction of reflected array
+    // direction of reflected array, from the center of ball
     // r = a-2(a·n)n
-    double reflected_x = ax_norm - 2 * (ax_norm * nx_norm + ay_norm * ny_norm) * nx_norm;
-    double reflected_y = ay_norm - 2 * (ax_norm * nx_norm + ay_norm * ny_norm) * ny_norm;
+    ax = ax_norm - 2 * (ax_norm * nx_norm + ay_norm * ny_norm) * nx_norm;
+    ay = ay_norm - 2 * (ax_norm * nx_norm + ay_norm * ny_norm) * ny_norm;
     
-    // TODO: keep this function or not?
-    return 0;
+    //double reflected_x = ax_norm - 2 * (ax_norm * nx_norm + ay_norm * ny_norm) * nx_norm;
+    //double reflected_y = ay_norm - 2 * (ax_norm * nx_norm + ay_norm * ny_norm) * ny_norm;
+    
+    // distance b/w vector a and reflected a
+    
 }
 
 double calcAngleReflection(double ballAngle, char wall) {
@@ -262,6 +266,34 @@ double calcAngleReflection(double ballAngle, char wall) {
     return angleReflection;
 }
 
+/*
+ * Input:   Ball b1, Ball b2  (passed by reference)
+ *
+ *          v1 and v2 (velocity of each ball before collision),
+ *          c1 and c2 (center locations of two balls when two balls collide),
+ *          M1 and M2 (mass of each ball)
+ *
+ * Output:  v1’ and v2’ (new velocity of each ball after collision) updated in b1 and b2
+ */
+void calcBallCollision(Ball &b1, Ball &b2) {
+    // Calculate the distance D = |c1c2| between 2 points of collision where c1 and c2 are center locations of two balls.
+    double D = sqrt( pow(b1.getX() - b2.getX(), 2) + pow(b1.getY() - b2.getY(), 2) );
+    
+    // Find the unit vector n from the point of collision for the first ball and the point of collision of the second ball.
+    double nx = (b1.getX() - b2.getX()) / D;
+    double ny = (b2.getY() - b2.getY()) / D;
+    
+    // Calculate the K-value that takes into account the velocities of both balls.
+    double Kx = (2 * (b1.getVelocityVectorX() * nx - b2.getVelocityVectorX() * nx)) / (b1.getMass() + b2.getMass());
+    double Ky = (2 * (b2.getVelocityVectorY() * ny - b2.getVelocityVectorY() * ny)) / (b1.getMass() + b2.getMass());
+    
+    // Update the new velocity of each ball using K-value
+    // 𝑣1′ =𝑣1−𝐾∗𝑀2∗𝑛
+    // 𝑣2′ =𝑣2+𝐾∗𝑀1∗𝑛
+    b1.setVelocityVector(b1.getVelocityVectorX() - Kx * b2.getMass() * nx, b1.getVelocityVectorY() - Ky * b2.getMass() * ny);
+    b2.setVelocityVector(b2.getVelocityVectorX() - Kx * b1.getMass() * nx, b2.getVelocityVectorY() - Ky * b1.getMass() * ny);
+}
+
 void myIdle() {
 
     t = 1;
@@ -269,45 +301,62 @@ void myIdle() {
     
     // Ball animation. Update coordinates of active balls.
     for (int i = 0; i < noOfBalls; i++) {
-        double directionInRadians = balls[i].getVelocityDirection() * PI / 180;
-        double newX = balls[i].getX() + cos(directionInRadians) * balls[i].getVelocityMagnitude() * t;
-        double newY = balls[i].getY() + sin(directionInRadians) * balls[i].getVelocityMagnitude() * t;
         
-        // if ball's edge meets a wall boundary, update new velocity direction. magnitude remains the same.
-        // left, right, bottom, top
-        // lt,   rt,    bt,     tp
-        int ballRadius = balls[i].getRadius();
+        int id = balls[i].getId();
+        int radius = balls[i].getRadius();
+        double vx = balls[i].getVelocityVectorX();
+        double vy = balls[i].getVelocityVectorY();
+        double angle = balls[i].getVelocityDirection();
         
-        // use reflection to calculate new velocity direction
-        if ( newX-ballRadius <= lt ) {
+        // Handle wall boundary collisions
+        if ( vx-radius <= lt ) {
             
-            std::cout << "LEFT BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
-            balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'L') );
-            newX = lt + 0.001 + ballRadius;
+            std::cout << "LEFT BOUNDARY REACHED ball" << id << std::endl;
+            balls[i].setVelocityDirection( calcAngleReflection(angle, 'L') );
+            vx = lt + 0.001 + radius;  // hacky workaround
             
-        } else if ( newX+ballRadius >= rt ) {
+        } else if ( vx+radius >= rt ) {
             
-            std::cout << "RIGHT BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
-            balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'R') );
-            newX = rt - 0.001 - ballRadius;
+            std::cout << "RIGHT BOUNDARY REACHED ball" << id << std::endl;
+            balls[i].setVelocityDirection( calcAngleReflection(angle, 'R') );
+            vx = rt - 0.001 - radius; // hacky workaround
             
-        } else if ( newY-ballRadius <= bt ) {
+        } else if ( vy-radius <= bt ) {
             
-            std::cout << "BOTTOM BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
-            balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'T') );
-            newY = bt + 0.001 + ballRadius;
+            std::cout << "BOTTOM BOUNDARY REACHED ball" << id << std::endl;
+            balls[i].setVelocityDirection( calcAngleReflection(angle, 'T') );
+            vy = bt + 0.001 + radius; // hacky workaround
             
-        } else if (newY+ballRadius >= tp ) {
+        } else if ( vy+radius >= tp ) {
             
-            std::cout << "TOP BOUNDARY REACHED ball" << balls[i].getId() << std::endl;
-            balls[i].setVelocityDirection( calcAngleReflection(balls[i].getVelocityDirection(), 'T') );
-            newY = tp - 0.001 - ballRadius;
+            std::cout << "TOP BOUNDARY REACHED ball" << id << std::endl;
+            balls[i].setVelocityDirection( calcAngleReflection(angle, 'T') );
+            vy = tp - 0.001 - radius; // hacky workaround
             
         }
         
-        // ####### TODO: handle ball-to-ball collision
- 
-        balls[i].setCoord(newX, newY);
+        // Update velocity vector from wall calculations
+        balls[i].setVelocityVector(vx, vy);
+        
+        // Handle ball-to-ball collisions
+        for (int j = 0; j < noOfBalls; j++) {
+            if (i != j) {
+            
+                // check if edges touch.
+                // calc distance b/w center of two balls and compare if <= combined radiuses
+                double distance = sqrt( pow(balls[i].getX() - balls[j].getX(), 2) + pow(balls[i].getY() - balls[j].getY(), 2) );
+                
+                if (distance <= balls[i].getRadius() + balls[j].getRadius()) {
+                    std::cout << "### collision ###" << std::endl;
+                    calcBallCollision(balls[i], balls[j]);
+                }
+            }
+        }
+        
+        // Move ball and update velocity vectors
+        balls[i].setCoord(vx, vy);
+        balls[i].updateVelocityVector();
+
     }
     
     glutPostRedisplay();
