@@ -34,37 +34,27 @@ GLdouble t = 0.0; // Initial time value
 
 // left, right, bottom, top
 float lt, rt, bt, tp;
-double coordRatio;
 
 const int MAX_BALLS = 5; // Render up to five balls
 Ball balls[MAX_BALLS];
 int noOfBalls = 2;
 int selectedBall = 1;
 
-const int UNIQUE_PAIRINGS = 10;
-int ballPairings[UNIQUE_PAIRINGS][2] = {
-    {1,2}, {1,3}, {1,4}, {1,5},
-    {2,3}, {2,4}, {2,5},
-    {3,4}, {3,5},
-    {4,5}
-};
-
 void createBalls() {
     int ballId = 1;
     
     // x, y, radius, velocity direction (as unit vector coords), velocity magnitude
     double ballInit[MAX_BALLS][6] = {
-        {10,10,4,0.5,sqrt(3/2),3},
-        {25,25,4,sqrt(3/2),-0.5,3},
-        {40,40,4,-sqrt(2)/2,sqrt(2)/2,3},
-        {65,65,4,-sqrt(2)/2,-sqrt(2)/2,3},
-        {80,80,4,-sqrt(3/2),0.5,3}
+        {10,10,5,0.5,sqrt(3/2),1},
+        {25,25,5,sqrt(3/2),-0.5,1},
+        {40,40,5,-sqrt(2)/2,sqrt(2)/2,1},
+        {65,65,5,-sqrt(2)/2,-sqrt(2)/2,1},
+        {80,80,5,-sqrt(3/2),0.5,1}
     };
     
     for (int i = 0; i < MAX_BALLS; i++) {
         balls[i] = Ball(ballId, ballInit[i][0], ballInit[i][1], ballInit[i][2], true);
         balls[i].setVelocity(ballInit[i][3], ballInit[i][4], ballInit[i][5]); // direction (in degrees) and magnitude
-        //balls[i].updateVelocityVector(); // init velocity vector
         balls[i].setMass(5);
         balls[i].setRGB((float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX, (float)rand()/(float)RAND_MAX);
         ballId++;
@@ -82,8 +72,6 @@ void myInit(void)
     bt = 0;
     tp = 100;
     
-    coordRatio = SCREENSIZE / 100;  //recalibrate for mouse coordinate selection
-    
     createBalls();
     
     gluOrtho2D(lt, rt, bt, tp);          // set the world window
@@ -100,19 +88,22 @@ void myMouse(int button, int state, int x, int y)
 }
 bool isBallAreaInMouseSelection(double x, double y, int r) {
     std::cout << "isBallAreaInMouseSelection" << std::endl;
+    std::cout << "mouse coord: " << mx << "," << my << std::endl;
+    
     std::cout << "x-r = " << x-r << std::endl;
     std::cout << "x+r = " << x+r << std::endl;
     std::cout << "y-r = " << y-r << std::endl;
     std::cout << "y+r = " << y+r << std::endl;
+    
     return (mx >= x-r && mx <= x+r && my >= y-r && my <= y+r);
 }
 void myMotion(int x, int y) {
     // ####### TODO: Allow user to pick a ball to change its velocity by using mouse (left-click, drag and drop)
-    mx = x/coordRatio; my = y/coordRatio;
+    mx = x; my = y;
     std::cout << "myMotion called at " << mx << "," << my << std::endl;
     
     for (int i = 0; i < noOfBalls; i++) {
-        if ( isBallAreaInMouseSelection(balls[i].getX(), balls[i].getY(), balls[i].getRadius()) ) {
+        if ( isBallAreaInMouseSelection(balls[i].getX(), screenHeight - balls[i].getY(), balls[i].getRadius()) ) {
             std::cout << "SELECTED BALL" << balls[i].getId() << std::endl;
         }
     }
@@ -247,34 +238,6 @@ void calcVectorReflection(double &ax, double &ay, double nx, double ny) {
     
 }
 
-double calcAngleReflection(double ballAngle, char wall) {
-    double angleReflection = -1;
-    
-    switch(wall) {
-        case 'L' :
-            // 0 degrees
-            angleReflection = 180 - ballAngle + 0;
-            break;
-        case 'R' :
-            // 180 degrees
-            angleReflection = 0 - ballAngle + 180;
-            break;
-        case 'B' :
-            // 90 degrees
-            angleReflection = 270 - ballAngle + 90;
-            break;
-        case 'T' :
-            // 270 degrees
-            angleReflection = 90 - ballAngle + 270;
-            break;
-        default :
-            std::cout << "No wall for angle reflection." << std::endl;
-    }
-    
-    std::cout << "angleReflection: " << angleReflection << std::endl;
-    return angleReflection;
-}
-
 /*
  * Input:   Ball b1, Ball b2  (passed by reference)
  *
@@ -372,21 +335,6 @@ void myIdle() {
                 }
             }
         }
-        
-        /*
-        for (int j = 0; j < UNIQUE_PAIRINGS; j++) {
-            
-            int ballA = ballPairings[j][0];
-            int ballB = ballPairings[j][1];
-            
-            double distance = sqrt( pow(balls[ballA].getX() - balls[ballB].getX(), 2) + pow(balls[ballA].getY() - balls[ballB].getY(), 2) );
-            
-            if (distance <= balls[ballA].getRadius() + balls[ballB].getRadius()) {
-                std::cout << "### collision ### " << balls[ballA].getId() << " " << balls[ballB].getId() << std::endl;
-                calcBallCollision(balls[ballA], balls[ballB]);
-            }
-        }
-        */
         
         // Move ball and update velocity vectors
         balls[i].move();
