@@ -95,42 +95,31 @@ double Ball::getMass() {
     return m_mass;
 }
 
-void Ball::setVelocity(double vd, double vm) {
-    m_velocity_direction = vd;
-    m_velocity_magnitude = vm;
-}
-
-void Ball::setVelocityDirection(double vd) {
-    m_velocity_direction = vd;
-}
-/*
 void Ball::setVelocity(double vx, double vy, double vm) {
     m_velocity_vectorX = vx;
     m_velocity_vectorY = vy;
     m_velocity_magnitude = vm;
 }
-*/
+
 void Ball::setVelocityVector(double x, double y) {
     m_velocity_vectorX = x;
     m_velocity_vectorY = y;
 }
 
-void Ball::updateVelocityVector() {
+void Ball::move() {
     double t = 1; // time
     
-    //double newX = balls[i].getX() + cos(directionInRadians) * balls[i].getVelocityMagnitude() * t;
-    //double newY = balls[i].getY() + sin(directionInRadians) * balls[i].getVelocityMagnitude() * t;
-    //double directionInRadians = balls[i].getVelocityDirection() * PI / 180;
+    // dot product between velocity vector and vector (1,0)
+    // double directionInRadians = m_velocity_vectorX * 1 + m_velocity_vectorY * 0;
     
-    double directionInRadians = m_velocity_direction * PI / 180;
+    // move ball
+    m_x += m_velocity_vectorX * m_velocity_magnitude;
+    m_y += m_velocity_vectorY * m_velocity_magnitude;
+    
     // calculate new velocity vector
-    m_velocity_vectorX = m_x + cos( directionInRadians ) * m_velocity_magnitude * t;
-    m_velocity_vectorY = m_y + sin( directionInRadians ) * m_velocity_magnitude * t;
-    std::cout << "new vector: " << m_velocity_vectorX << "," << m_velocity_vectorY << std::endl;
-}
+    // m_velocity_vectorX = m_x + cos( directionInRadians ) * m_velocity_magnitude * t;
+    // m_velocity_vectorY = m_y + sin( directionInRadians ) * m_velocity_magnitude * t;
 
-void Ball::updateVelocityDirectionFromVector() {
-    
 }
 
 void Ball::incVelocityMagnitude(int x) {
@@ -139,10 +128,6 @@ void Ball::incVelocityMagnitude(int x) {
 
 void Ball::decVelocityMagnitude(int x) {
     if (m_velocity_magnitude - x >= MIN_VELOCITY) { m_velocity_magnitude -= x; }
-}
-
-double Ball::getVelocityDirection() {
-    return m_velocity_direction;
 }
 
 double Ball::getVelocityVectorX() {
